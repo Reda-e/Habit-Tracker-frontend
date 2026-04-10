@@ -1,22 +1,25 @@
-import { useEffect, useState } from "react";
-import api from "../api/axios.js";
+import { useState, useEffect } from "react";
+import api from "../api/axios";
 
 export default function Habits() {
   const [habits, setHabits] = useState([]);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [frequency, setFrequency] = useState("");
-  const [startDate, setStartDate] = useState("");
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    frequency: "",
+    start_date: "",
+  });
+  const [editingId, setEditingId] = useState(null);
   const [message, setMessage] = useState("");
 
-  // Récupérer tous les habits
+  // Fetch habits for logged-in user
   const fetchHabits = async () => {
     try {
       const res = await api.get("/habits");
       setHabits(res.data);
     } catch (err) {
-      console.log("Error fetching habits:", err);
-      setMessage("Erreur lors du chargement des habits");
+      console.log(err);
+      setMessage("Error fetching habits");
     }
   };
 
@@ -25,103 +28,135 @@ export default function Habits() {
     fetchHabits();
   }, []);
 
-  // Créer un nouvel habit
-  const handleCreate = async (e) => {
+  // Handle form input
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  // Add or update habit
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
     try {
-      const res = await api.post("/habits", {
-        user_id: 1, // ici tu mets l'ID du user connecté
-        title,
-        description,
-        frequency,
-        start_date: startDate,
-      });
-      setHabits([...habits, res.data]);
-      setTitle("");
-      setDescription("");
-      setFrequency("");
-      setStartDate("");
-      setMessage("Habit créé avec succès !");
+      if (editingId) {
+        await api.put(`/habits/${editingId}`, form);
+        setMessage("Habit updated successfully!");
+      } else {
+        await api.post("/habits", form);
+        setMessage("Habit created successfully!");
+      }
+      setForm({ title: "", description: "", frequency: "", start_date: "" });
+      setEditingId(null);
+      fetchHabits();
     } catch (err) {
-      console.log("Error creating habit:", err);
-      setMessage("Erreur lors de la création");
+      console.log(err);
+      setMessage("Error saving habit");
     }
   };
 
-  // Supprimer un habit
+  // Edit habit
+  const handleEdit = (habit) => {
+    setForm({
+      title: habit.title,
+      description: habit.description,
+      frequency: habit.frequency,
+      start_date: habit.start_date.slice(0, 10),
+    });
+    setEditingId(habit.id);
+  };
+
+  // Delete habit
   const handleDelete = async (id) => {
+    if (!confirm("Are you sure you want to delete this habit?")) return;
     try {
       await api.delete(`/habits/${id}`);
-      setHabits(habits.filter((h) => h.id !== id));
-      setMessage("Habit supprimé !");
+      setMessage("Habit deleted successfully!");
+      fetchHabits();
     } catch (err) {
-      console.log("Error deleting habit:", err);
-      setMessage("Erreur lors de la suppression");
+      console.log(err);
+      setMessage("Error deleting habit");
     }
   };
 
   return (
-    <div className="p-4 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Mes Habits</h1>
+    <div className="max-w-4xl mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-4">My Habits</h1>
 
       {message && <p className="mb-4 text-green-500">{message}</p>}
 
-      <form onSubmit={handleCreate} className="flex flex-col gap-2 mb-6">
-        <input
-          type="text"
-          placeholder="Titre"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="p-2 border"
-          required
-        />
-        <input
-          type="text"
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="p-2 border"
-        />
-        <input
-          type="text"
-          placeholder="Fréquence"
-          value={frequency}
-          onChange={(e) => setFrequency(e.target.value)}
-          className="p-2 border"
-          required
-        />
-        <input
-          type="date"
-          placeholder="Date de début"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="p-2 border"
-          required
-        />
-        <button type="submit" className="bg-green-500 text-white p-2 mt-2">
-          Ajouter Habit
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+            type="text"
+            name="title"
+            placeholder="Title"
+            value={form.title}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+            required
+          />
+          <input
+            type="text"
+            name="frequency"
+            placeholder="Frequency"
+            value={form.frequency}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+            required
+          />
+          <input
+            type="date"
+            name="start_date"
+            value={form.start_date}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+            required
+          />
+          <input
+            type="text"
+            name="description"
+            placeholder="Description"
+            value={form.description}
+            onChange={handleChange}
+            className="p-2 border rounded w-full"
+          />
+        </div>
+        <button className="bg-blue-500 text-white p-2 mt-4 rounded w-full">
+          {editingId ? "Update Habit" : "Add Habit"}
         </button>
       </form>
 
-      <ul>
+      {/* Habit List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {habits.map((habit) => (
-          <li key={habit.id} className="flex justify-between items-center border-b p-2">
+          <div key={habit.id} className="bg-white p-4 rounded shadow flex flex-col justify-between">
             <div>
-              <p className="font-bold">{habit.title}</p>
-              <p className="text-sm">{habit.description}</p>
-              <p className="text-xs">Fréquence: {habit.frequency}</p>
-              <p className="text-xs">Start: {habit.start_date}</p>
+              <h2 className="font-bold text-lg">{habit.title}</h2>
+              <p className="text-sm text-gray-600">{habit.description}</p>
+              <p className="text-sm mt-1">
+                <span className="font-semibold">Frequency:</span> {habit.frequency}
+              </p>
+              <p className="text-sm">
+                <span className="font-semibold">Start Date:</span> {habit.start_date.slice(0,10)}
+              </p>
             </div>
-            <button
-              onClick={() => handleDelete(habit.id)}
-              className="bg-red-500 text-white p-1 rounded"
-            >
-              Supprimer
-            </button>
-          </li>
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => handleEdit(habit)}
+                className="bg-yellow-500 text-white px-3 py-1 rounded"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDelete(habit.id)}
+                className="bg-red-500 text-white px-3 py-1 rounded"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
