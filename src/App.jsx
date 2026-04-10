@@ -10,27 +10,32 @@ import ResetPassword from "./pages/ResetPassword";
 import Notifications from "./pages/Notifications";
 import Register from "./pages/Register";
 import Header from "./components/Header";
+import GuestRoute from "./GuestRoute";
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        {/* <Header /> */}
+        <Header />
         <div className="p-4">
           <Routes>
+           <Route element={<GuestRoute/>} >
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            </Route>
+           <Route element={<ProtectedRoute/>} >
             <Route path="/" element={
-              <ProtectedRoute><Habits /></ProtectedRoute>
+              <Habits />
             } />
             <Route path="/logs" element={
-              <ProtectedRoute><HabitLogs /></ProtectedRoute>
+             <HabitLogs />
             } />
             <Route path="/notifications" element={
-              <ProtectedRoute><Notifications /></ProtectedRoute>
+              <Notifications />
             } />
+            </Route>
           </Routes>
         </div>
       </BrowserRouter>
