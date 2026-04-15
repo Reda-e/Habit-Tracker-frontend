@@ -1,91 +1,169 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import api from "../api/axios";
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  // Fetch notifications
+  // جلب الإشعارات
   const fetchNotifications = async () => {
     try {
       const res = await api.get("/notifications");
-      setNotifications(res.data);
+      setNotifications(res.data.data || res.data);
     } catch (err) {
-      console.log(err);
+      console.error(err);
+      setMessage({ text: "Erreur lors du chargement", type: "error" });
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchNotifications();
   }, []);
 
-  // Delete notification
-  const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this notification?")) return;
+  // تعليم إشعار واحد كمقروء
+  const markAsRead = async (id) => {
     try {
-      await api.delete(`/notifications/${id}`);
-      setMessage("Notification deleted successfully!");
-      fetchNotifications();
+      await api.put(`/notifications/${id}`, { read: true });
+      setNotifications(notifications.map(n => n.id === id ? { ...n, read: true } : n));
     } catch (err) {
-      console.log(err);
-      setMessage("Error deleting notification");
+      console.error(err);
     }
   };
 
-  // Mark all as read
-  const handleMarkAllAsRead = async () => {
+  // تعليم الكل كمقروء
+  const markAllAsRead = async () => {
     try {
       await api.post("/notifications/mark-all-read");
-      setMessage("All notifications marked as read!");
-      fetchNotifications();
+      setNotifications(notifications.map(n => ({ ...n, read: true })));
+      setMessage({ text: "Toutes les notifications sont lues", type: "success" });
+      setTimeout(() => setMessage(""), 3000);
     } catch (err) {
-      console.log(err);
-      setMessage("Error marking notifications");
+      console.error(err);
     }
   };
 
+  // حذف إشعار
+  const deleteNotification = async (id) => {
+    if (!confirm("Supprimer cette notification ?")) return;
+    try {
+      await api.delete(`/notifications/${id}`);
+      setNotifications(notifications.filter(n => n.id !== id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  if (loading) return (
+    <div className="flex justify-center items-center min-h-[60vh]">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+    </div>
+  );
+
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">Notifications</h1>
-
-      {message && <p className="mb-4 text-green-500">{message}</p>}
-
-      <div className="flex justify-end mb-4">
-        <button
-          onClick={handleMarkAllAsRead}
-          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-        >
-          Mark all as read
-        </button>
+    <div className="max-w-3xl mx-auto p-4 sm:p-6 lg:py-10">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Notifications</h1>
+          <p className="text-gray-500 font-medium">Restez informé de vos progrès.</p>
+        </div>
+        
+        {notifications.some(n => !n.read) && (
+          <button 
+            onClick={markAllAsRead}
+            className="text-sm font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-4 py-2 rounded-xl transition-all"
+          >
+            Tout marquer comme lu
+          </button>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {notifications.map((notif) => (
-          <div
-            key={notif.id}
-            className={`p-4 rounded shadow flex flex-col justify-between ${
-              notif.read ? "bg-gray-100" : "bg-white"
-            }`}
-          >
-            <div>
-              <h2 className="font-bold text-lg">{notif.title}</h2>
-              {notif.habit && (
-                <p className="text-sm text-gray-600">Habit: {notif.habit.title}</p>
-              )}
-              <p className="mt-1">{notif.message}</p>
-              <p className="text-xs text-gray-500 mt-2">Send at: {new Date(notif.send_at).toLocaleString()}</p>
+      {/* Status Message */}
+      {message && (
+        <div className={`mb-6 p-4 rounded-2xl border text-sm font-bold flex items-center gap-2 animate-fade-in ${
+          message.type === "error" ? "bg-red-50 border-red-100 text-red-600" : "bg-emerald-50 border-emerald-100 text-emerald-600"
+        }`}>
+          <span>{message.type === "error" ? "⚠️" : "✨"}</span>
+          {message.text}
+        </div>
+      )}
+
+      {/* Notifications List */}
+      <div className="space-y-4">
+        {notifications.length > 0 ? (
+          notifications.map((n) => (
+            <div 
+              key={n.id}
+              className={`relative group p-5 rounded-[2rem] border transition-all duration-300 ${
+                n.read 
+                ? "bg-white border-gray-100 opacity-75" 
+                : "bg-white border-blue-100 shadow-md ring-1 ring-blue-50"
+              }`}
+            >
+              <div className="flex gap-4">
+                {/* Status Dot */}
+                {!n.read && (
+                  <span className="absolute top-6 left-2 w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
+                )}
+
+                <div className="flex-1">
+                  <div className="flex justify-between items-start mb-1">
+                    <h3 className={`font-bold text-lg ${n.read ? "text-gray-700" : "text-gray-900"}`}>
+                      {n.title}
+                    </h3>
+                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">
+                      {new Date(n.send_at).toLocaleDateString('fr-FR')}
+                    </span>
+                  </div>
+                  
+                  <p className={`text-sm leading-relaxed mb-4 ${n.read ? "text-gray-500" : "text-gray-600 font-medium"}`}>
+                    {n.message}
+                  </p>
+
+                  <div className="flex items-center gap-3">
+                    {/* Habit Badge */}
+                    {n.habit && (
+                      <span className="text-[10px] font-bold bg-gray-100 text-gray-500 px-2 py-1 rounded-lg">
+                        🎯 {n.habit.title}
+                      </span>
+                    )}
+                    
+                    <div className="ml-auto flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {!n.read && (
+                        <button 
+                          onClick={() => markAsRead(n.id)}
+                          className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors"
+                          title="Marquer comme lu"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => deleteNotification(n.id)}
+                        className="p-2 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-lg transition-colors"
+                        title="Supprimer"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex justify-end gap-2 mt-4">
-              <button
-                onClick={() => handleDelete(notif.id)}
-                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-              >
-                Delete
-              </button>
-            </div>
+          ))
+        ) : (
+          <div className="text-center py-20 bg-gray-100/50 rounded-[3rem] border-2 border-dashed border-gray-200">
+            <div className="text-4xl mb-4">🔔</div>
+            <p className="text-gray-400 font-medium italic">Aucune notification pour le moment.</p>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
