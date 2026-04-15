@@ -24,43 +24,89 @@ export default function Login() {
   };
 
   return (
-    <div className="p-4 max-w-sm mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Login</h1>
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-        <label>Email</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="p-2 border rounded"
-          required
-        />
-
-        <label>Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="p-2 border rounded"
-          required
-        />
-
-        {error && <div className="text-red-500 text-sm">{error}</div>}
-
-        <div className="flex justify-between text-sm mt-2">
-          <Link to="/forgot-password" className="text-blue-500">
-            Mot de passe oublié ?
-          </Link>
-          <Link to="/register" className="text-green-500">
-            Créer un compte
-          </Link>
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
+        {/* Logo or Icon */}
+        <div className="mx-auto h-12 w-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
         </div>
+        <h1 className="mt-6 text-3xl font-extrabold text-gray-900 tracking-tight">Welcome Back</h1>
+        <p className="mt-2 text-sm text-gray-500 font-medium">Please sign in to your account</p>
+      </div>
 
-        <button className="bg-blue-500 text-white p-2 mt-4 rounded">
-          Login
-        </button>
-      </form>
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow-xl shadow-gray-200/50 rounded-3xl border border-gray-100 sm:px-10">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            
+            {/* Email Field */}
+            <div className="space-y-1">
+              <label className="text-sm font-semibold text-gray-600 ml-1">Email address</label>
+              <div className="relative">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="block w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all duration-200 placeholder:text-gray-400"
+                  placeholder="name@example.com"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Password Field */}
+            <div className="space-y-1">
+              <label className="text-sm font-semibold text-gray-600 ml-1">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="block w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all duration-200 placeholder:text-gray-400"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-100 text-red-500 text-sm p-3 rounded-xl animate-shake">
+                <div className="flex items-center">
+                  <span className="mr-2">⚠️</span>
+                  {error}
+                </div>
+              </div>
+            )}
+
+            {/* Links */}
+            <div className="flex items-center justify-between text-sm">
+              <Link to="/forgot-password" name="forgot" className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
+                Mot de passe oublié ?
+              </Link>
+              <Link to="/register" className="font-semibold text-emerald-600 hover:text-emerald-500 transition-colors">
+                Créer un compte
+              </Link>
+            </div>
+
+            {/* Submit Button */}
+            <button className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-blue-200 transform active:scale-[0.98] transition-all">
+              Login
+            </button>
+          </form>
+
+          {/* Social login divider (Optional UI) */}
+          <div className="mt-8">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm uppercase">
+                <span className="px-4 bg-white text-gray-400 font-bold tracking-widest text-[10px]">Secure Access</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
