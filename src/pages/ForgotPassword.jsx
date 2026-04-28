@@ -1,24 +1,59 @@
 import { useState } from "react";
 import api from "../api/axios.js";
 import { Link } from "react-router-dom";
+import { validateEmail } from "../utils/validation";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState(false);
+
+  const handleBlur = () => {
+    setTouched(true);
+    validateField();
+  };
+
+  const validateField = () => {
+    const fieldErrors = {};
+    if (!email.trim()) {
+      fieldErrors.email = "L'email est requis";
+    } else if (!validateEmail(email)) {
+      fieldErrors.email = "Veuillez entrer une adresse email valide";
+    }
+    setErrors(fieldErrors);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setMessage("");
+
+    // Validate before submit
+    const fieldErrors = {};
+    if (!email.trim()) {
+      fieldErrors.email = "L'email est requis";
+    } else if (!validateEmail(email)) {
+      fieldErrors.email = "Veuillez entrer une adresse email valide";
+    }
+
+    if (Object.keys(fieldErrors).length > 0) {
+      setErrors(fieldErrors);
+      setTouched(true);
+      return;
+    }
+
+    setLoading(true);
     try {
       const res = await api.post("/forgot-password", { email });
       console.log("SUCCESS:", res); 
       setMessage({ text: res.data.message, type: "success" });
+      setEmail("");
     } catch (err) {
       console.log("FULL ERROR:", err); 
       console.log("RESPONSE:", err.response); 
-      setMessage({ text: "Error sending email. Please try again.", type: "error" });
+      const errorMsg = err.response?.data?.message || "Erreur lors de l'envoi de l'email. Veuillez réessayer.";
+      setMessage({ text: errorMsg, type: "error" });
     } finally {
       setLoading(false);
     }
@@ -65,10 +100,22 @@ export default function ForgotPassword() {
                 type="email"
                 placeholder="name@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all placeholder:text-gray-300"
-                required
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (touched) validateField();
+                }}
+                onBlur={handleBlur}
+                className={`w-full px-4 py-3 bg-gray-50 border rounded-2xl focus:ring-2 focus:bg-white outline-none transition-all placeholder:text-gray-300 ${
+                  errors.email && touched
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-200 focus:ring-blue-500"
+                }`}
               />
+              {errors.email && touched && (
+                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                  <span>✗</span> {errors.email}
+                </p>
+              )}
             </div>
 
             <button

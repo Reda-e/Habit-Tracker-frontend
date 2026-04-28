@@ -2,18 +2,52 @@
 import { useState } from "react";
 import { useAuth } from "../AuthContext";
 import { Link, useNavigate } from "react-router-dom";
+import { validateLoginForm } from "../utils/validation";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({});
   const [error, setError] = useState("");
+  const [touched, setTouched] = useState({});
 
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const handleBlur = (field) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    if (touched.email) {
+      validateField("email", e.target.value);
+    }
+  };
+
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    if (touched.password) {
+      validateField("password", e.target.value);
+    }
+  };
+
+  const validateField = (field, value) => {
+    const formErrors = validateLoginForm(email, password);
+    setErrors(formErrors);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Validate all fields before submit
+    const formErrors = validateLoginForm(email, password);
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      setTouched({ email: true, password: true });
+      return;
+    }
 
     const res = await login(email, password);
     if (res.success) {
@@ -47,12 +81,21 @@ export default function Login() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all duration-200 placeholder:text-gray-400"
+                  onChange={handleEmailChange}
+                  onBlur={() => handleBlur("email")}
+                  className={`block w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:bg-white outline-none transition-all duration-200 placeholder:text-gray-400 ${
+                    errors.email && touched.email
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-200 focus:ring-blue-500"
+                  }`}
                   placeholder="name@example.com"
-                  required
                 />
               </div>
+              {errors.email && touched.email && (
+                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                  <span>✗</span> {errors.email}
+                </p>
+              )}
             </div>
 
             {/* Password Field */}
@@ -61,11 +104,20 @@ export default function Login() {
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="block w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all duration-200 placeholder:text-gray-400"
+                onChange={handlePasswordChange}
+                onBlur={() => handleBlur("password")}
+                className={`block w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:bg-white outline-none transition-all duration-200 placeholder:text-gray-400 ${
+                  errors.password && touched.password
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-200 focus:ring-blue-500"
+                }`}
                 placeholder="••••••••"
-                required
               />
+              {errors.password && touched.password && (
+                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                  <span>✗</span> {errors.password}
+                </p>
+              )}
             </div>
 
             {/* Error Message */}

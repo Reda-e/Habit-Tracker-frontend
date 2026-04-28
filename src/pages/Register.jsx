@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useAuth } from "../AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import { validateRegisterForm, validatePassword } from "../utils/validation";
 
 export default function Register() {
   const { register } = useAuth();
@@ -14,21 +15,58 @@ export default function Register() {
     password_confirmation: "",
   });
 
+  const [errors, setErrors] = useState({});
   const [error, setError] = useState("");
+  const [touched, setTouched] = useState({});
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
+
+    // Validate field in real-time if it's been touched
+    if (touched[name]) {
+      validateField(name);
+    }
+  };
+
+  const handleBlur = (field) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    validateField(field);
+  };
+
+  const validateField = (field) => {
+    const formErrors = validateRegisterForm(
+      formData.name,
+      formData.email,
+      formData.password,
+      formData.password_confirmation
+    );
+    setErrors(formErrors);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (formData.password !== formData.password_confirmation) {
-      setError("Les mots de passe ne correspondent pas");
+    // Validate all fields
+    const formErrors = validateRegisterForm(
+      formData.name,
+      formData.email,
+      formData.password,
+      formData.password_confirmation
+    );
+
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      setTouched({
+        name: true,
+        email: true,
+        password: true,
+        password_confirmation: true,
+      });
       return;
     }
 
@@ -74,9 +112,18 @@ export default function Register() {
                 placeholder="John Doe"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all placeholder:text-gray-300"
-                required
+                onBlur={() => handleBlur("name")}
+                className={`w-full px-4 py-3 bg-gray-50 border rounded-2xl focus:ring-2 focus:bg-white outline-none transition-all placeholder:text-gray-300 ${
+                  errors.name && touched.name
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-200 focus:ring-blue-500"
+                }`}
               />
+              {errors.name && touched.name && (
+                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                  <span>✗</span> {errors.name}
+                </p>
+              )}
             </div>
 
             {/* Email Field */}
@@ -88,9 +135,18 @@ export default function Register() {
                 placeholder="john@example.com"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all placeholder:text-gray-300"
-                required
+                onBlur={() => handleBlur("email")}
+                className={`w-full px-4 py-3 bg-gray-50 border rounded-2xl focus:ring-2 focus:bg-white outline-none transition-all placeholder:text-gray-300 ${
+                  errors.email && touched.email
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-200 focus:ring-blue-500"
+                }`}
               />
+              {errors.email && touched.email && (
+                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                  <span>✗</span> {errors.email}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -103,9 +159,28 @@ export default function Register() {
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all"
-                  required
+                  onBlur={() => handleBlur("password")}
+                  className={`w-full px-4 py-3 bg-gray-50 border rounded-2xl focus:ring-2 focus:bg-white outline-none transition-all ${
+                    errors.password && touched.password
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-200 focus:ring-blue-500"
+                  }`}
                 />
+                {errors.password && touched.password && (
+                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                    <span>✗</span> {errors.password}
+                  </p>
+                )}
+                {touched.password && !errors.password && formData.password && (
+                  <div className="mt-2 space-y-1">
+                    <div className="flex gap-1">
+                      <div className="h-1 flex-1 bg-green-500 rounded"></div>
+                      <div className="h-1 flex-1 bg-green-500 rounded"></div>
+                      <div className="h-1 flex-1 bg-green-500 rounded"></div>
+                    </div>
+                    <p className="text-xs text-green-600 font-semibold">Mot de passe fort ✓</p>
+                  </div>
+                )}
               </div>
 
               {/* Confirm Password */}
@@ -117,11 +192,45 @@ export default function Register() {
                   placeholder="••••••••"
                   value={formData.password_confirmation}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all"
-                  required
+                  onBlur={() => handleBlur("password_confirmation")}
+                  className={`w-full px-4 py-3 bg-gray-50 border rounded-2xl focus:ring-2 focus:bg-white outline-none transition-all ${
+                    errors.password_confirmation && touched.password_confirmation
+                      ? "border-red-500 focus:ring-red-500"
+                      : "border-gray-200 focus:ring-blue-500"
+                  }`}
                 />
+                {errors.password_confirmation && touched.password_confirmation && (
+                  <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                    <span>✗</span> {errors.password_confirmation}
+                  </p>
+                )}
               </div>
             </div>
+
+            {/* Password Requirements Helper */}
+            {touched.password && formData.password && (
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-2">
+                <p className="text-xs font-bold text-blue-900 uppercase">Exigences du mot de passe:</p>
+                <div className="space-y-2">
+                  <div className={`flex items-center gap-2 text-sm ${formData.password.length >= 8 ? "text-green-600" : "text-gray-500"}`}>
+                    <span>{formData.password.length >= 8 ? "✓" : "○"}</span>
+                    <span>Au moins 8 caractères</span>
+                  </div>
+                  <div className={`flex items-center gap-2 text-sm ${/[A-Z]/.test(formData.password) ? "text-green-600" : "text-gray-500"}`}>
+                    <span>{/[A-Z]/.test(formData.password) ? "✓" : "○"}</span>
+                    <span>Au moins une lettre majuscule (A-Z)</span>
+                  </div>
+                  <div className={`flex items-center gap-2 text-sm ${/[a-z]/.test(formData.password) ? "text-green-600" : "text-gray-500"}`}>
+                    <span>{/[a-z]/.test(formData.password) ? "✓" : "○"}</span>
+                    <span>Au moins une lettre minuscule (a-z)</span>
+                  </div>
+                  <div className={`flex items-center gap-2 text-sm ${/[0-9]/.test(formData.password) ? "text-green-600" : "text-gray-500"}`}>
+                    <span>{/[0-9]/.test(formData.password) ? "✓" : "○"}</span>
+                    <span>Au moins un chiffre (0-9)</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <button
               type="submit"
