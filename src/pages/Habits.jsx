@@ -44,11 +44,9 @@ export default function Habits() {
     setLoading(true);
     try {
       if (editingId) {
-        // Mode Mise à jour (Update)
         await api.put(`/habits/${editingId}`, form);
         showStatus("Habitude mise à jour avec succès !");
       } else {
-        // Mode Création (Store)
         await api.post("/habits", form);
         showStatus("Nouvelle habitude ajoutée !");
       }
@@ -56,7 +54,7 @@ export default function Habits() {
       fetchHabits();
     } catch (err) {
       console.error("Submit error:", err);
-      showStatus("Erreur lors de l'enregistrement", "error");
+      showStatus("Erreur lors de l'enregistrement. Vérifiez les champs.", "error");
     } finally {
       setLoading(false);
     }
@@ -67,7 +65,6 @@ export default function Habits() {
     setEditingId(null);
   };
 
-  // Préparer le formulaire pour la modification
   const handleEdit = (habit) => {
     setForm({
       title: habit.title,
@@ -79,13 +76,11 @@ export default function Habits() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Supprimer une habitude
   const handleDelete = async (id) => {
     if (!confirm("Voulez-vous vraiment supprimer cette habitude ?")) return;
     try {
       await api.delete(`/habits/${id}`);
       showStatus("Habitude supprimée !");
-      // Mise à jour immédiate de la liste côté client
       setHabits(habits.filter(h => h.id !== id));
     } catch (err) {
       console.error("Delete error:", err);
@@ -128,16 +123,38 @@ export default function Habits() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-1">
               <label className="text-xs font-bold text-gray-400 uppercase ml-1">Titre</label>
-              <input name="title" type="text" value={form.title} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" required />
+              <input name="title" type="text" value={form.title} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Min. 3 caractères" required />
             </div>
+            
             <div className="space-y-1">
               <label className="text-xs font-bold text-gray-400 uppercase ml-1">Fréquence</label>
-              <input name="frequency" type="text" placeholder="ex: Quotidien" value={form.frequency} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" required />
+              <select 
+                name="frequency" 
+                value={form.frequency} 
+                onChange={handleChange} 
+                className="w-full p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+                required
+              >
+                <option value="">Sélectionnez...</option>
+                <option value="daily">Quotidien (Daily)</option>
+                <option value="weekly">Hebdomadaire (Weekly)</option>
+                <option value="monthly">Mensuel (Monthly)</option>
+              </select>
             </div>
+
             <div className="space-y-1">
               <label className="text-xs font-bold text-gray-400 uppercase ml-1">Date de début</label>
-              <input name="start_date" type="date" value={form.start_date} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" required />
+              <input 
+                name="start_date" 
+                type="date" 
+                min={new Date().toISOString().split("T")[0]} 
+                value={form.start_date} 
+                onChange={handleChange} 
+                className="w-full p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" 
+                required 
+              />
             </div>
+
             <div className="space-y-1">
               <label className="text-xs font-bold text-gray-400 uppercase ml-1">Description</label>
               <input name="description" type="text" value={form.description} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
