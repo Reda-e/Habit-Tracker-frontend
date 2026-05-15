@@ -24,15 +24,15 @@ export default function App() {
           <Header />
           <main className="flex-grow p-4">
             <Routes>
-    {/* صفحات الزوار (محمية بـ GuestRoute) */}
+    
     <Route element={<GuestRoute />}>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} /> 
+        <Route path="/reset-password" element={<ResetPassword />} /> 
     </Route>
 
-    {/* حماية المستخدمين العاديين */}
+    
     <Route element={<ProtectedRoute />}>
         <Route path="/" element={<Habits />} />
         <Route path="/logs" element={<HabitLogs />} />
@@ -40,13 +40,13 @@ export default function App() {
         <Route path="/profile" element={<Profile />} />
     </Route>
 
-    {/* حماية الأدمن */}
+   
     <Route element={<AdminRoute />}>
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/users/:id/details" element={<UserDetails />} />
     </Route>
 
-    {/* المسار الافتراضي */}
+   
     <Route path="*" element={<Navigate to="/" replace />} />
 </Routes>
           </main>
