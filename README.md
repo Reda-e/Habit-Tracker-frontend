@@ -1,16 +1,29 @@
-# React + Vite
+# 🎨 Habit Tracker - Frontend (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Ce dépôt contient l'interface utilisateur (Client) de l'application **Habit Tracker**. Développée avec **React** et propulsée par **Vite**, cette application offre une expérience utilisateur fluide, dynamique et entièrement réactive (Responsive).
 
-Currently, two official plugins are available:
+L'application communique directement avec l'API Laravel pour la gestion des habitudes, l'authentification et le suivi des performances.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 🛠️ Technologies Utilisées
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+* **Framework UI :** React JS (Hooks, Context API)
+* **Outil de Build :** Vite (HMR - Hot Module Replacement pour un développement rapide)
+* **Style & Design :** Tailwind CSS / Bootstrap
+* **Gestion des Requêtes :** Axios (avec configuration des Headers d'authentification)
+* **Notifications UI :** React-Toastify (ou similaire pour les flash messages)
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 📦 Structure du Projet (Frontend)
+
+```text
+src/
+├── assets/            # Images, logos et styles globaux
+├── components/        # Composants réutilisables (Navbar, Sidebar, HabitCard)
+├── context/           # Gestion globale de l'état (AuthContext pour le Token)
+├── pages/             # Les pages principales (Login, Register, Dashboard, Logs, Admin)
+├── services/          # Configuration d'Axios et appels API (api.js)
+├── App.jsx            # Configuration des Routes (React Router)
+└── main.jsx           # Point d'entrée de l'application
